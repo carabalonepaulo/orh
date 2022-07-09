@@ -2,7 +2,43 @@ class_name TcpClient
 extends RefCounted
 
 
-enum { READ_LINE, READ }
+class Event extends RefCounted:
+    var task: Task
+
+    func _init(_task: Task):
+        task = _task
+
+    func handle(buffer: StreamPeerBuffer, read_cursor: int, write_cursor: int) -> int:
+        return -1
+
+
+class ReadEvent extends Event:
+    var length: int
+
+    func _init(_task: Task, _length: int):
+        super(_task)
+        length = _length
+
+    func handle(buffer: StreamPeerBuffer, read_cursor: int, write_cursor: int) -> int:
+        if read_cursor + length > write_cursor:
+            return - 1
+        buffer.seek(read_cursor)
+        task.complete(buffer.get_data(length)[1])
+        read_cursor += length
+        return length
+
+
+class ReadLineEvent extends Event:
+    func handle(buffer: StreamPeerBuffer, read_cursor: int, write_cursor: int) -> int:
+        var i := buffer.data_array.find(10, read_cursor)
+        if i == -1:
+            return -1
+
+        var length := i + 1 - read_cursor
+        buffer.seek(read_cursor)
+        task.complete(buffer.get_string(length))
+        return length
+
 
 var id: int:
     get: return _id
@@ -15,7 +51,7 @@ var _connected: bool
 var _buffer: StreamPeerBuffer
 var _read_cursor: int
 var _write_cursor: int
-var _tasks: Queue
+var _events: Queue
 
 
 func _init(cid: int, socket: StreamPeerTCP):
@@ -23,7 +59,7 @@ func _init(cid: int, socket: StreamPeerTCP):
     _socket = socket
     _connected = true
     _buffer = StreamPeerBuffer.new()
-    _tasks = Queue.new()
+    _events = Queue.new()
 
 
 func poll() -> void:
@@ -31,7 +67,7 @@ func poll() -> void:
         return
 
     _try_receive()
-    _do_task()
+    _try_handle_event()
 
     if _socket.poll() != OK or _socket.get_status() != StreamPeerTCP.STATUS_CONNECTED:
         dispose()
@@ -39,13 +75,13 @@ func poll() -> void:
 
 func read_line() -> Task:
     var task := Task.new()
-    _tasks.enqueue([task, READ_LINE])
+    _events.enqueue(ReadLineEvent.new(task))
     return task
 
 
-func read(bytes: int) -> Task:
+func read(length: int) -> Task:
     var task := Task.new()
-    _tasks.enqueue([task, READ, bytes])
+    _events.enqueue(ReadEvent.new(task, length))
     return task
 
 
@@ -58,20 +94,19 @@ func send_string(text: String) -> void:
 
 
 func dispose() -> void:
-    _release_pending_tasks()
+    _release_pending_events()
     _socket.disconnect_from_host()
     _connected = false
 
 
-func _release_pending_tasks() -> void:
-    var current_task = _tasks.dequeue()
-    while current_task != null:
-        match current_task[1]:
-            READ_LINE:
-                current_task[0].complete("")
-            READ:
-                current_task[0].complete(PackedByteArray())
-        current_task = _tasks.dequeue()
+func _release_pending_events() -> void:
+    var event: Event = _events.dequeue()
+    while event != null:
+        if event is ReadLineEvent:
+            event.task.complete("")
+        else:
+            event.task.complete(PackedByteArray())
+        event = _events.dequeue()
 
 
 func _try_receive() -> void:
@@ -86,27 +121,15 @@ func _try_receive() -> void:
     _write_cursor += data[1].size()
 
 
-func _do_task() -> void:
-    var current_task = _tasks.peek_first()
-    if current_task == null:
+func _try_handle_event() -> void:
+    var event: Event = _events.peek_first()
+    if event == null:
         return
 
-    match current_task[1]:
-        READ_LINE:
-            var i := _buffer.data_array.find(10, _read_cursor)
-            if i == -1:
-                return
-            _buffer.seek(_read_cursor)
-            current_task[0].complete(_buffer.get_string(i + 1 - _read_cursor))
-            _read_cursor += i - _read_cursor + 1
-            _tasks.dequeue()
-        READ:
-            if _read_cursor + current_task[2] > _write_cursor:
-                return
-            _buffer.seek(_read_cursor)
-            current_task[0].complete(_buffer.get_data(current_task[2])[1])
-            _read_cursor += current_task[2]
-            _tasks.dequeue()
+    var length := event.handle(_buffer, _read_cursor, _write_cursor)
+    if length != -1:
+        _read_cursor += length
+        _events.dequeue()
 
     if _read_cursor == _write_cursor:
         _buffer.clear()
