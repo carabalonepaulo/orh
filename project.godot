@@ -1,0 +1,122 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+_global_script_classes=[{
+"base": "SceneTree",
+"class": &"App",
+"language": &"GDScript",
+"path": "res://lib/app.gd"
+}, {
+"base": "Middleware",
+"class": &"CloseConnection",
+"language": &"GDScript",
+"path": "res://lib/middlewares/close_connection.gd"
+}, {
+"base": "RefCounted",
+"class": &"ConcurrentQueue",
+"language": &"GDScript",
+"path": "res://lib/concurrency/concurrent_queue.gd"
+}, {
+"base": "RefCounted",
+"class": &"HttpRequest",
+"language": &"GDScript",
+"path": "res://lib/http/http_request.gd"
+}, {
+"base": "RefCounted",
+"class": &"HttpResponse",
+"language": &"GDScript",
+"path": "res://lib/http/http_response.gd"
+}, {
+"base": "RefCounted",
+"class": &"HttpServer",
+"language": &"GDScript",
+"path": "res://lib/http/http_server.gd"
+}, {
+"base": "Middleware",
+"class": &"Logger",
+"language": &"GDScript",
+"path": "res://lib/middlewares/logger.gd"
+}, {
+"base": "RefCounted",
+"class": &"Middleware",
+"language": &"GDScript",
+"path": "res://lib/middleware.gd"
+}, {
+"base": "RefCounted",
+"class": &"Queue",
+"language": &"GDScript",
+"path": "res://lib/queue.gd"
+}, {
+"base": "Middleware",
+"class": &"Router",
+"language": &"GDScript",
+"path": "res://lib/middlewares/router.gd"
+}, {
+"base": "RefCounted",
+"class": &"Task",
+"language": &"GDScript",
+"path": "res://lib/concurrency/task.gd"
+}, {
+"base": "RefCounted",
+"class": &"TcpClient",
+"language": &"GDScript",
+"path": "res://lib/network/tcp_client.gd"
+}, {
+"base": "RefCounted",
+"class": &"TcpListener",
+"language": &"GDScript",
+"path": "res://lib/network/tcp_listener.gd"
+}, {
+"base": "RefCounted",
+"class": &"ThreadPool",
+"language": &"GDScript",
+"path": "res://lib/concurrency/thread_pool.gd"
+}, {
+"base": "RefCounted",
+"class": &"URI",
+"language": &"GDScript",
+"path": "res://lib/uri.gd"
+}, {
+"base": "RefCounted",
+"class": &"UUID",
+"language": &"GDScript",
+"path": "res://lib/uuid.gd"
+}]
+_global_script_class_icons={
+"App": "",
+"CloseConnection": "",
+"ConcurrentQueue": "",
+"HttpRequest": "",
+"HttpResponse": "",
+"HttpServer": "",
+"Logger": "",
+"Middleware": "",
+"Queue": "",
+"Router": "",
+"Task": "",
+"TcpClient": "",
+"TcpListener": "",
+"ThreadPool": "",
+"URI": "",
+"UUID": ""
+}
+
+[application]
+
+config/name="HttpServer"
+config/features=PackedStringArray("4.0", "Vulkan Clustered")
+config/icon="res://icon.png"
+
+[debug]
+
+gdscript/warnings/unused_variable=0
+gdscript/warnings/unused_parameter=0
+gdscript/warnings/unused_signal=0
+gdscript/warnings/return_value_discarded=0

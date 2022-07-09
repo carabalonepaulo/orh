@@ -1,0 +1,1 @@
+C:\Users\psore\dev\godot_bin\Godot_v4.0-alpha11_win64.exe -d -s .\src\app.gd
