@@ -11,6 +11,9 @@ class Event extends RefCounted:
     func handle(buffer: StreamPeerBuffer, read_cursor: int, write_cursor: int) -> int:
         return -1
 
+    func fail() -> void:
+        pass
+
 
 class ReadEvent extends Event:
     var length: int
@@ -27,6 +30,9 @@ class ReadEvent extends Event:
         read_cursor += length
         return length
 
+    func fail() -> void:
+        task.complete(PackedByteArray())
+
 
 class ReadLineEvent extends Event:
     func handle(buffer: StreamPeerBuffer, read_cursor: int, write_cursor: int) -> int:
@@ -38,6 +44,9 @@ class ReadLineEvent extends Event:
         buffer.seek(read_cursor)
         task.complete(buffer.get_string(length))
         return length
+
+    func fail() -> void:
+        task.complete("")
 
 
 var id: int:
@@ -102,10 +111,7 @@ func dispose() -> void:
 func _release_pending_events() -> void:
     var event: Event = _events.dequeue()
     while event != null:
-        if event is ReadLineEvent:
-            event.task.complete("")
-        else:
-            event.task.complete(PackedByteArray())
+        event.fail()
         event = _events.dequeue()
 
 
