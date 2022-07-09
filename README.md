@@ -7,6 +7,7 @@ Asynchronous HTTP server fully written in GDScript.
 ### Addons
 - [ ] Router
 - [ ] Static file server
+- [ ] SMTP Client
 
 ### Framework
 - [ ] Cookies
