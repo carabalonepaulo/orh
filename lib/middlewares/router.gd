@@ -40,4 +40,4 @@ func execute(ctx: Dictionary) -> bool:
             continue
         list[regex].call(ctx)
 
-    return false
+    return true
