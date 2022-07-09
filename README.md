@@ -3,10 +3,21 @@
 Asynchronous HTTP server fully written in GDScript.
 
 ## TODO
+
+### Addons
+- [ ] Router
+- [ ] Static file server
+
+### Framework
 - [ ] Cookies
 - [ ] Session
 - [ ] SSL
 - [ ] GZIP
+
+### Core
+- [ ] Add timeout to read/write
+- [ ] Rewrite `Content-Length` header parser
+- [ ] Rewrite `path` parser
 
 ## Exemple
 ```gdscript
