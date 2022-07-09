@@ -144,11 +144,12 @@ func _try_handle_event() -> void:
 
     if timeout > 0 and event.elapsed_time > timeout:
         dispose()
-    else:
-        var length := event.handle(_buffer, _read_cursor, _write_cursor)
-        if length != -1:
-            _read_cursor += length
-            _events.dequeue()
+        return
+
+    var length := event.handle(_buffer, _read_cursor, _write_cursor)
+    if length != -1:
+        _read_cursor += length
+        _events.dequeue()
 
     if _read_cursor == _write_cursor:
         _buffer.clear()
