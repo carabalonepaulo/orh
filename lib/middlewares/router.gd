@@ -36,7 +36,7 @@ func execute(ctx: Dictionary) -> bool:
 
     for regex in list.keys():
         var result := regex.search(path) as RegExMatch
-        if result.strings.size() == 0:
+        if result == null or result.strings.size() == 0:
             continue
         list[regex].call(ctx)
 
