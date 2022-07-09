@@ -32,17 +32,23 @@ func update() -> void:
 
 
 func use(middleware) -> void:
-    _push_middleware(SYNC, middleware)
+    if middleware is Array:
+        for m in middleware:
+            use(m)
+    else:
+        _push_middleware(SYNC, middleware)
 
 
 func use_async(middleware) -> void:
-    _push_middleware(ASYNC, middleware)
+    if middleware is Array:
+        for m in middleware:
+            use_async(m)
+    else:
+        _push_middleware(ASYNC, middleware)
 
 
 func _push_middleware(kind: int, middleware) -> void:
-    if middleware is Array:
-        pass
-    elif middleware is Middleware:
+    if middleware is Middleware:
         _middlewares.push_back([kind, func(ctx: Dictionary) -> bool:
             return middleware.execute(ctx)])
     elif middleware is Callable:
