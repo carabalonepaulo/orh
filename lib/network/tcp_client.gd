@@ -3,16 +3,24 @@ extends RefCounted
 
 
 class Event extends RefCounted:
+    var elapsed_time: float:
+        get: return get_elapsed_time()
     var task: Task
+
+    var _start_time: float
 
     func _init(_task: Task):
         task = _task
+        _start_time = Time.get_ticks_msec()
 
     func handle(buffer: StreamPeerBuffer, read_cursor: int, write_cursor: int) -> int:
         return -1
 
     func fail() -> void:
         pass
+
+    func get_elapsed_time() -> float:
+        return (Time.get_ticks_msec() - _start_time) * 0.001
 
 
 class ReadEvent extends Event:
@@ -53,6 +61,7 @@ var id: int:
     get: return _id
 var connected: bool:
     get: return _connected
+var timeout: float
 
 var _id: int
 var _socket: StreamPeerTCP
@@ -63,12 +72,13 @@ var _write_cursor: int
 var _events: Queue
 
 
-func _init(cid: int, socket: StreamPeerTCP):
+func _init(cid: int, socket: StreamPeerTCP, _timeout: float = -1.0):
     _id = cid
     _socket = socket
     _connected = true
     _buffer = StreamPeerBuffer.new()
     _events = Queue.new()
+    timeout = _timeout
 
 
 func poll() -> void:
@@ -132,10 +142,13 @@ func _try_handle_event() -> void:
     if event == null:
         return
 
-    var length := event.handle(_buffer, _read_cursor, _write_cursor)
-    if length != -1:
-        _read_cursor += length
-        _events.dequeue()
+    if timeout > 0 and event.elapsed_time > timeout:
+        dispose()
+    else:
+        var length := event.handle(_buffer, _read_cursor, _write_cursor)
+        if length != -1:
+            _read_cursor += length
+            _events.dequeue()
 
     if _read_cursor == _write_cursor:
         _buffer.clear()
