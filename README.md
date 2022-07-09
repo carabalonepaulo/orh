@@ -2,6 +2,12 @@
 
 Asynchronous HTTP server fully written in GDScript.
 
+## TODO
+- [ ] Cookies
+- [ ] Session
+- [ ] SSL
+- [ ] GZIP
+
 ## Exemple
 ```gdscript
 extends Main
