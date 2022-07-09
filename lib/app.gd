@@ -1,44 +1,54 @@
 class_name App
-extends SceneTree
+extends RefCounted
 
 
-var _quit := false
+const SYNC := 0
+const ASYNC := 1
+const KIND := 0
+const CALLABLE := 1
+
+
 var _server: HttpServer
-var _middlewares: Array[Middleware]
+var _middlewares: Array
+
+
+func _init(port: int = 8080):
+    _middlewares = []
+    _server = HttpServer.new(port)
+    _server.connect("request_received", _on_request_received)
 
 
 func start() -> void:
-    _middlewares = get_middlewares()
-    _server = HttpServer.new()
-    _server.connect("request_received", _on_request_received)
     _server.start()
 
 
 func stop() -> void:
-    _middlewares.clear()
     _server.stop()
+    _middlewares.clear()
 
 
 func update() -> void:
     _server.poll()
 
 
-func get_middlewares() -> Array[Middleware]:
-    return []
+func use(middleware) -> void:
+    _push_middleware(SYNC, middleware)
 
 
-func _initialize():
-    start()
+func use_async(middleware) -> void:
+    _push_middleware(ASYNC, middleware)
 
 
-func _process(_delta: float):
-    update()
-    return _quit
-
-
-func _finalize():
-    stop()
-    _middlewares.clear()
+func _push_middleware(kind: int, middleware) -> void:
+    if middleware is Array:
+        pass
+    elif middleware is Middleware:
+        _middlewares.push_back([kind, func(ctx: Dictionary) -> bool:
+            return middleware.execute(ctx)])
+    elif middleware is Callable:
+        _middlewares.push_back([kind, middleware])
+    else:
+        push_error("Invalid middleware '%s'." % middleware.get_class())
 
 
 func _on_request_received(req: HttpRequest, res: HttpResponse) -> void:
@@ -50,7 +60,9 @@ func _on_request_received(req: HttpRequest, res: HttpResponse) -> void:
     }
 
     for middleware in _middlewares:
-        if not middleware.execute(context):
-            return
-
-    res.send(405)
+        if middleware[KIND] == SYNC:
+            if not middleware[CALLABLE].call(context):
+                break
+        else:
+            if not (await middleware[CALLABLE].call(context)):
+                break

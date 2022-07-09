@@ -9,7 +9,7 @@
 config_version=5
 
 _global_script_classes=[{
-"base": "SceneTree",
+"base": "RefCounted",
 "class": &"App",
 "language": &"GDScript",
 "path": "res://lib/app.gd"
@@ -43,6 +43,11 @@ _global_script_classes=[{
 "class": &"Logger",
 "language": &"GDScript",
 "path": "res://lib/middlewares/logger.gd"
+}, {
+"base": "SceneTree",
+"class": &"Main",
+"language": &"GDScript",
+"path": "res://lib/main.gd"
 }, {
 "base": "RefCounted",
 "class": &"Middleware",
@@ -97,6 +102,7 @@ _global_script_class_icons={
 "HttpResponse": "",
 "HttpServer": "",
 "Logger": "",
+"Main": "",
 "Middleware": "",
 "Queue": "",
 "Router": "",
