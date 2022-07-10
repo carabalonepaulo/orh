@@ -69,6 +69,16 @@ _global_script_classes=[{
 "language": &"GDScript",
 "path": "res://lib/middlewares/router.gd"
 }, {
+"base": "Middleware",
+"class": &"SessionMiddleware",
+"language": &"GDScript",
+"path": "res://lib/middlewares/session/session_middleware.gd"
+}, {
+"base": "RefCounted",
+"class": &"SessionStore",
+"language": &"GDScript",
+"path": "res://lib/middlewares/session/session_store.gd"
+}, {
 "base": "RefCounted",
 "class": &"Task",
 "language": &"GDScript",
@@ -88,6 +98,11 @@ _global_script_classes=[{
 "class": &"ThreadPool",
 "language": &"GDScript",
 "path": "res://lib/concurrency/thread_pool.gd"
+}, {
+"base": "RefCounted",
+"class": &"TimeUtils",
+"language": &"GDScript",
+"path": "res://lib/time_utils.gd"
 }, {
 "base": "RefCounted",
 "class": &"URI",
@@ -112,10 +127,13 @@ _global_script_class_icons={
 "Middleware": "",
 "Queue": "",
 "Router": "",
+"SessionMiddleware": "",
+"SessionStore": "",
 "Task": "",
 "TcpClient": "",
 "TcpListener": "",
 "ThreadPool": "",
+"TimeUtils": "",
 "URI": "",
 "UUID": ""
 }

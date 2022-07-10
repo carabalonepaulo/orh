@@ -11,7 +11,7 @@ Asynchronous HTTP server fully written in GDScript.
 
 ### Framework
 - [X] Cookies
-- [ ] Session
+- [X] Session
 - [ ] SSL
 - [ ] GZIP
 
