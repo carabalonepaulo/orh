@@ -36,6 +36,7 @@ func _on_client_connected(client: TcpClient) -> void:
     while _running:
         if not await _handle_request(client):
             break
+    client.dispose()
 
 
 func _handle_request(client: TcpClient) -> bool:
@@ -57,7 +58,7 @@ func _handle_request(client: TcpClient) -> bool:
             return false
 
     # GET /path HTTP/1.1
-    parts = line.replace(CRLF, "").split(" ")
+    parts = _trim(line).split(" ")
 
     if parts.size() != 3:
         response.send(400)
@@ -81,7 +82,7 @@ func _handle_request(client: TcpClient) -> bool:
             return false
 
         parts = line.split(": ")
-        request.headers[parts[0]] = parts[1].replace(CRLF, "")
+        request.headers[parts[0]] = _trim(parts[1])
         count += 1
 
         if count > HEADER_LIMIT:
@@ -97,8 +98,11 @@ func _handle_request(client: TcpClient) -> bool:
 
     # Body
     if request.headers.has("Content-Length"):
+        if not _is_valid_content_length(request.headers["Content-Length"]):
+            response.send(400)
+            return false
+
         var content_length: int = request.headers["Content-Length"].to_int()
-        # TODO: Bad Request. Invalid Content-Length.
         if content_length > MAX_BODY:
             response.send(413)
             return false
@@ -111,17 +115,22 @@ func _handle_request(client: TcpClient) -> bool:
     elif _has_chunked_encoding(request):
         var size_or_data := 0
         var bytes_to_read := 0
+        var body := PackedStringArray()
 
         while true:
             if size_or_data % 2 == 0:
-                line = await client.read_line().completed
-                bytes_to_read = line.replace(CRLF, "").hex_to_int()
+                line = _trim((await client.read_line().completed))
+                if not _is_valid_hex(line):
+                    response.send(400)
+                    return false
+
+                bytes_to_read = line.hex_to_int()
             else:
                 if bytes_to_read == 0:
                     break
 
                 var chunk: PackedByteArray = await client.read(bytes_to_read).completed
-                request.body += chunk.get_string_from_ascii() # TODO: slow af
+                body.append(chunk.get_string_from_ascii())
 
                 var separator: String = (await client.read(2).completed).get_string_from_ascii()
                 if separator != CRLF:
@@ -129,6 +138,7 @@ func _handle_request(client: TcpClient) -> bool:
                     return true
 
             size_or_data += 1
+        request.body = "".join(body)
     elif request.method == "POST":
         response.send(411)
         return true
@@ -148,3 +158,23 @@ func _has_chunked_encoding(request: HttpRequest) -> bool:
         if request.headers["Transfer-Encoding"].find("chunked") != -1:
             return request.method == "POST"
     return false
+
+
+func _is_valid_content_length(text: String) -> bool:
+    for i in text.length():
+        if (text[i] >= '0' and text[i] <= '9') == false:
+            return false
+    return true
+
+
+func _is_valid_hex(text: String) -> bool:
+    for i in text.length():
+        if ((text[i] >= '0' and text[i] <= '9') or\
+                (text[i] >= 'a' and text[i] <= 'f') or\
+                (text[i] >= 'A' and text[i] <= 'F')) == false:
+            return false
+    return true
+
+
+func _trim(line: String) -> String:
+    return line.substr(0, line.length() - 2)
