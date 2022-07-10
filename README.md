@@ -26,26 +26,34 @@ var app: App
 func start() -> void:
     app = App.new()
 
-    # Session
-    var session_middleware := SessionMiddleware.new()
-    app.connect("started", session_middleware.load_store)
-    app.connect("stopped", session_middleware.save_store)
-    app.use(session_middleware)
+    # session
+    var session := SessionMiddleware.new()
+    app.connect("started", session.load_store)
+    app.connect("stopped", session.save_store)
+    app.use(session)
 
-    app.use(func(ctx: Dictionary) -> bool:
-        ctx._log_start = Time.get_ticks_msec()
-        return true)
-    app.use_async(func(ctx: Dictionary) -> bool:
-        await create_timer(3).timeout
-        return true)
-    app.use(func(ctx: Dictionary) -> bool:
-        var elapsed: float = Time.get_ticks_msec() - ctx._log_start
+    # logger
+    app.use(func(ctx: Dictionary):
         var now := Time.get_datetime_dict_from_system()
-        var formatted := "[%s:%s:%s %s/%s/%s] %s %s %dms" % [now["hour"],
-            now["minute"], now["second"], now["month"], now["day"],
-            now["year"], ctx.req.method, ctx.req.uri.path, elapsed]
-        print(formatted)
-        return true)
+        var formatted := "[%02d:%02d:%02d] %s %s" % [now["hour"],
+            now["minute"], now["second"], ctx.req.method, ctx.req.uri.path]
+        print(formatted))
+
+    # handle request
+    app.use(func(ctx: Dictionary):
+        ctx.init_session.call()
+
+        if ctx.session.has("last_path"):
+            ctx.res.send(200, "Path: %s" % ctx.session.last_path)
+        else:
+            ctx.res.send(200, "Hello World!")
+        ctx.session.last_path = ctx.req.uri.path)
+
+    # detroy current session
+    app.use(func(ctx):
+        ctx.session.count = ctx.session.count + 1 if ctx.session.has("count") else 0
+        if ctx.session.count == 2:
+            ctx.destroy_session.call())
 
     app.start()
 
