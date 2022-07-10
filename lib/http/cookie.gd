@@ -5,10 +5,14 @@ extends RefCounted
 const EXPIRES_REQUIRED_FIELDS := ["year", "month", "day", "weekday", "hour", "minute", "second"]
 const SAME_SITE := ["Strict", "Lax", "None"]
 
+const SameSite := {
+    STRICT = "Strict",
+    LAX = "Lax",
+    NONE = "None"
+}
 
 var name: String
 var value: String
-
 var expires: Dictionary = {}
 var max_age: int = -1
 var domain: String = ""

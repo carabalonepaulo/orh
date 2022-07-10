@@ -30,6 +30,7 @@ func regenerate(id: String) -> Dictionary:
 
     var new_id := UUID.v4()
     session.__id = new_id
+    session.__expires_at = Time.get_unix_time_from_system() + DEFAULT_LIFE_SPAN
     _sessions[new_id] = session
 
     return session
@@ -37,10 +38,9 @@ func regenerate(id: String) -> Dictionary:
 
 func create() -> Dictionary:
     var id := UUID.v4()
-    var now := Time.get_unix_time_from_system()
     var session := {
         "__id": id,
-        "__expires_at": now + DEFAULT_LIFE_SPAN
+        "__expires_at": Time.get_unix_time_from_system() + DEFAULT_LIFE_SPAN
     }
     _sessions[id] = session
     return session

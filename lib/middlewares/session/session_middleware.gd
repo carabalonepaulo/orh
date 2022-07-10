@@ -31,6 +31,10 @@ func execute(ctx: Dictionary) -> bool:
     else:
         ctx.session = _store.create()
 
-    res.add_cookie(Cookie.new("GDSESSID", ctx.session.__id))
+    var cookie := Cookie.new("GDSESSID", ctx.session.__id)
+    cookie.path = "/"
+    cookie.same_site = Cookie.SameSite.STRICT
+    cookie.expires = Time.get_datetime_dict_from_unix_time(ctx.session.__expires_at)
+    res.add_cookie(cookie)
 
     return true
