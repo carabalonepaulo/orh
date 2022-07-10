@@ -2,6 +2,10 @@ class_name HttpResponse
 extends RefCounted
 
 
+signal before_send
+signal after_send
+
+
 const CRLF := "\r\n"
 const STATUS := {
     100: "Continue",
@@ -89,6 +93,8 @@ func add_cookie(cookie: Cookie) -> void:
 
 
 func send(code: int, content := "") -> void:
+    emit_signal("before_send")
+
     var raw_content := content.to_ascii_buffer()
     var lines := PackedStringArray()
     lines.append("HTTP/1.1 %d %s" % [code, STATUS[code]])
@@ -106,6 +112,8 @@ func send(code: int, content := "") -> void:
 
     _client.send_string(CRLF.join(lines))
     _client.send(raw_content)
+
+    emit_signal("after_send")
 
 
 func send_status(code: int) -> void:
