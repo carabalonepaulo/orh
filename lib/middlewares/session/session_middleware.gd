@@ -1,5 +1,5 @@
-class_name SessionMiddleware
-extends Middleware
+class_name Session
+extends StatefulMiddleware
 
 
 const COOKIE_NAME := "GDSESSID"
@@ -11,11 +11,11 @@ func _init():
     _store = SessionStore.new()
 
 
-func load_store() -> void:
+func start() -> void:
     _store.load_sessions()
 
 
-func save_store() -> void:
+func stop() -> void:
     _store.save_sessions()
 
 
