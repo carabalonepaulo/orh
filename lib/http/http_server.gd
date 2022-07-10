@@ -90,8 +90,8 @@ func _handle_request(client: TcpClient) -> bool:
             client.dispose()
             return false
 
-    if request.method == "POST":
-        if request.headers.has("Expect"):
+    if request.method == "POST" and request.headers.has("Expect"):
+        if request.headers["Expect"].find("100-continue") != -1:
             response.send_status(100)
         else:
             response.send_status(417)
