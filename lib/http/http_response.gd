@@ -76,10 +76,16 @@ const STATUS := {
 var headers: Dictionary
 
 var _client: TcpClient
+var _cookies: Array[Cookie]
 
 
 func _init(client: TcpClient):
     _client = client
+    _cookies = []
+
+
+func add_cookie(cookie: Cookie) -> void:
+    _cookies.append(cookie)
 
 
 func send(code: int, content := "") -> void:
@@ -92,6 +98,9 @@ func send(code: int, content := "") -> void:
 
     if not headers.has("Content-Length"):
         lines.append("Content-Length: %d" % raw_content.size())
+
+    for cookie in _cookies:
+        lines.append("Set-Cookie: %s" % cookie)
 
     lines.append(CRLF)
 

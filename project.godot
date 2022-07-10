@@ -25,6 +25,11 @@ _global_script_classes=[{
 "path": "res://lib/concurrency/concurrent_queue.gd"
 }, {
 "base": "RefCounted",
+"class": &"Cookie",
+"language": &"GDScript",
+"path": "res://lib/http/cookie.gd"
+}, {
+"base": "RefCounted",
 "class": &"HttpRequest",
 "language": &"GDScript",
 "path": "res://lib/http/http_request.gd"
@@ -98,6 +103,7 @@ _global_script_class_icons={
 "App": "",
 "CloseConnection": "",
 "ConcurrentQueue": "",
+"Cookie": "",
 "HttpRequest": "",
 "HttpResponse": "",
 "HttpServer": "",

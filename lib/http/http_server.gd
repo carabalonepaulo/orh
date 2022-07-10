@@ -90,6 +90,15 @@ func _handle_request(client: TcpClient) -> bool:
             client.dispose()
             return false
 
+    # Cookies
+    if request.headers.has("Cookie"):
+        for item in request.headers["Cookie"].split("; "):
+            parts = item.split("=")
+            if parts.size() != 2:
+                response.send_status(400)
+                return false
+            request.cookies[parts[0]] = parts[1]
+
     if request.method == "POST" and request.headers.has("Expect"):
         if request.headers["Expect"].find("100-continue") != -1:
             response.send_status(100)

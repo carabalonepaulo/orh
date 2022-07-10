@@ -7,3 +7,4 @@ var headers: Dictionary
 var protocol: String
 var uri: URI
 var body: String
+var cookies: Dictionary
