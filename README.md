@@ -10,14 +10,14 @@ Asynchronous HTTP server fully written in GDScript.
 - [ ] SMTP Client
 
 ### Framework
-- [ ] Cookies
+- [X] Cookies
 - [ ] Session
 - [ ] SSL
 - [ ] GZIP
 
 ### Core
 - [X] Add timeout to read/write
-- [ ] Rewrite `Content-Length` header parser
+- [X] Rewrite `Content-Length` header parser
 - [ ] Rewrite `path` parser
 
 ## Exemple
