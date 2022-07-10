@@ -13,7 +13,7 @@ const CALLABLE := 1
 
 
 var _server: HttpServer
-var _middlewares: Array
+var _middlewares: Array[Array]
 
 
 func _init(port: int = 8080):
@@ -38,33 +38,26 @@ func update() -> void:
 
 
 func use(middleware) -> void:
-    if middleware is Array:
-        for m in middleware:
-            use(m)
-    else:
-        _push_middleware(SYNC, middleware)
+    _push_middleware(_middlewares, SYNC, middleware)
 
 
 func use_async(middleware) -> void:
-    if middleware is Array:
-        for m in middleware:
-            use_async(m)
-    else:
-        _push_middleware(ASYNC, middleware)
+    _push_middleware(_middlewares, ASYNC, middleware)
 
 
-func _push_middleware(kind: int, middleware) -> void:
+func _push_middleware(container: Array, kind: int, middleware) -> void:
     if middleware is Middleware:
-        _middlewares.push_back([kind, func(ctx: Dictionary) -> bool:
+        container.push_back([kind, func(ctx: Dictionary) -> bool:
             return middleware.execute(ctx)])
     elif middleware is Callable:
-        _middlewares.push_back([kind, middleware])
+        container.push_back([kind, middleware])
     else:
         push_error("Invalid middleware '%s'." % middleware.get_class())
 
 
 func _on_request_received(req: HttpRequest, res: HttpResponse) -> void:
     var context := {
+        "app": self,
         "request": req,
         "response": res,
         "req": req,
@@ -73,8 +66,10 @@ func _on_request_received(req: HttpRequest, res: HttpResponse) -> void:
 
     for middleware in _middlewares:
         if middleware[KIND] == SYNC:
-            if not middleware[CALLABLE].call(context):
+            if middleware[CALLABLE].call(context) == true:
                 break
         else:
-            if not (await middleware[CALLABLE].call(context)):
+            if await middleware[CALLABLE].call(context) == true:
                 break
+
+    context.clear()

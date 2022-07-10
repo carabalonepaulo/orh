@@ -92,6 +92,17 @@ func add_cookie(cookie: Cookie) -> void:
     _cookies.append(cookie)
 
 
+func remove_cookie(name: String) -> void:
+    var index := -1
+    for i in _cookies.size():
+        if _cookies[i].name == name:
+            index = i
+            break
+
+    if index != -1:
+        _cookies.remove_at(index)
+
+
 func send(code: int, content := "") -> void:
     emit_signal("before_send")
 

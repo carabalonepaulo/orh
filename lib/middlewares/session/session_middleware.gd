@@ -2,6 +2,8 @@ class_name SessionMiddleware
 extends Middleware
 
 
+const COOKIE_NAME := "GDSESSID"
+
 var _store: SessionStore
 
 
@@ -17,24 +19,36 @@ func save_store() -> void:
     _store.save_sessions()
 
 
-func execute(ctx: Dictionary) -> bool:
+func execute(ctx: Dictionary):
     var req: HttpRequest = ctx.req
     var res: HttpResponse = ctx.res
 
-    if req.cookies.has("GDSESSID"):
-        var id: String = req.cookies["GDSESSID"]
-        if _store.has(id) && _store.is_valid(id):
-            ctx.session = _store.regenerate(id)
+    ctx.session_store = _store
+
+    ctx.init_session = (func():
+        if ctx.has("session"):
+            return
+
+        if req.cookies.has(COOKIE_NAME):
+            var id: String = req.cookies[COOKIE_NAME]
+            if _store.has(id) && _store.is_valid(id):
+                ctx.session = _store.regenerate(id)
+            else:
+                _store.destroy(id)
+                ctx.session = _store.create()
         else:
-            _store.destroy(id)
             ctx.session = _store.create()
-    else:
-        ctx.session = _store.create()
 
-    var cookie := Cookie.new("GDSESSID", ctx.session.__id)
-    cookie.path = "/"
-    cookie.same_site = Cookie.SameSite.STRICT
-    cookie.expires = Time.get_datetime_dict_from_unix_time(ctx.session.__expires_at)
-    res.add_cookie(cookie)
+        var cookie := Cookie.new(COOKIE_NAME, ctx.session.__id)
+        cookie.path = "/"
+        cookie.same_site = Cookie.SameSite.STRICT
+        cookie.expires = Time.get_datetime_dict_from_unix_time(ctx.session.__expires_at)
+        res.add_cookie(cookie))
 
-    return true
+    ctx.destroy_session = (func():
+        if not ctx.has("session"):
+            return
+
+        _store.destroy(ctx.session.__id)
+        ctx.session = null
+        ctx.res.remove_cookie(COOKIE_NAME))

@@ -14,11 +14,6 @@ _global_script_classes=[{
 "language": &"GDScript",
 "path": "res://lib/app.gd"
 }, {
-"base": "Middleware",
-"class": &"CloseConnection",
-"language": &"GDScript",
-"path": "res://lib/middlewares/close_connection.gd"
-}, {
 "base": "RefCounted",
 "class": &"ConcurrentQueue",
 "language": &"GDScript",
@@ -44,11 +39,6 @@ _global_script_classes=[{
 "language": &"GDScript",
 "path": "res://lib/http/http_server.gd"
 }, {
-"base": "Middleware",
-"class": &"Logger",
-"language": &"GDScript",
-"path": "res://lib/middlewares/logger.gd"
-}, {
 "base": "SceneTree",
 "class": &"Main",
 "language": &"GDScript",
@@ -63,11 +53,6 @@ _global_script_classes=[{
 "class": &"Queue",
 "language": &"GDScript",
 "path": "res://lib/queue.gd"
-}, {
-"base": "Middleware",
-"class": &"Router",
-"language": &"GDScript",
-"path": "res://lib/middlewares/router.gd"
 }, {
 "base": "Middleware",
 "class": &"SessionMiddleware",
@@ -116,17 +101,14 @@ _global_script_classes=[{
 }]
 _global_script_class_icons={
 "App": "",
-"CloseConnection": "",
 "ConcurrentQueue": "",
 "Cookie": "",
 "HttpRequest": "",
 "HttpResponse": "",
 "HttpServer": "",
-"Logger": "",
 "Main": "",
 "Middleware": "",
 "Queue": "",
-"Router": "",
 "SessionMiddleware": "",
 "SessionStore": "",
 "Task": "",

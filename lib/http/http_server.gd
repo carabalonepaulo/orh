@@ -78,7 +78,6 @@ func _handle_request(client: TcpClient) -> bool:
             response.send(413)
             return false
         elif line == "":
-            client.dispose()
             return false
 
         parts = line.split(": ")
@@ -87,7 +86,6 @@ func _handle_request(client: TcpClient) -> bool:
 
         if count > HEADER_LIMIT:
             response.send(400)
-            client.dispose()
             return false
 
     # Cookies
@@ -156,7 +154,6 @@ func _handle_request(client: TcpClient) -> bool:
 
     if request.protocol == "1.1" and request.headers.has("Connection") and\
             request.headers["Connection"] == "close":
-        client.dispose()
         return false
 
     return true

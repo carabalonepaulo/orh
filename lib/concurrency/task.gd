@@ -11,6 +11,8 @@ var state: int:
     get: return _state
 var result:
     get: return _result
+var is_completed: bool:
+    get: return _state == State.COMPLETED
 
 var _state: int = State.PENDING
 var _result
