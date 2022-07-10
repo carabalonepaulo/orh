@@ -31,6 +31,12 @@ var app: App
 func start() -> void:
     app = App.new()
 
+    # Session
+    var session_middleware := SessionMiddleware.new()
+    app.connect("started", session_middleware.load_store)
+    app.connect("stopped", session_middleware.save_store)
+    app.use(session_middleware)
+
     app.use(func(ctx: Dictionary) -> bool:
         ctx._log_start = Time.get_ticks_msec()
         return true)
