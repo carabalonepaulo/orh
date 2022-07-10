@@ -15,11 +15,6 @@ Asynchronous HTTP server fully written in GDScript.
 - [ ] SSL
 - [ ] GZIP
 
-### Core
-- [X] Add timeout to read/write
-- [X] Rewrite `Content-Length` header parser
-- [ ] Rewrite `path` parser
-
 ## Exemple
 ```gdscript
 extends Main
