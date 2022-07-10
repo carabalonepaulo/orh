@@ -2,6 +2,10 @@ class_name App
 extends RefCounted
 
 
+signal started
+signal stopped
+
+
 const SYNC := 0
 const ASYNC := 1
 const KIND := 0
@@ -19,10 +23,12 @@ func _init(port: int = 8080):
 
 
 func start() -> void:
+    emit_signal("started")
     _server.start()
 
 
 func stop() -> void:
+    emit_signal("stopped")
     _server.stop()
     _middlewares.clear()
 
