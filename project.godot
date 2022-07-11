@@ -15,11 +15,6 @@ _global_script_classes=[{
 "path": "res://lib/app.gd"
 }, {
 "base": "RefCounted",
-"class": &"AstNode",
-"language": &"GDScript",
-"path": "res://lib/template_engine/ast_node.gd"
-}, {
-"base": "RefCounted",
 "class": &"ConcurrentQueue",
 "language": &"GDScript",
 "path": "res://lib/concurrency/concurrent_queue.gd"
@@ -43,11 +38,6 @@ _global_script_classes=[{
 "class": &"HttpServer",
 "language": &"GDScript",
 "path": "res://lib/http/http_server.gd"
-}, {
-"base": "AstNode",
-"class": &"IfNode",
-"language": &"GDScript",
-"path": "res://lib/template_engine/nodes/if_node.gd"
 }, {
 "base": "SceneTree",
 "class": &"Main",
@@ -90,16 +80,6 @@ _global_script_classes=[{
 "path": "res://lib/network/tcp_listener.gd"
 }, {
 "base": "RefCounted",
-"class": &"TemplateEngine",
-"language": &"GDScript",
-"path": "res://lib/template_engine/template_engine.gd"
-}, {
-"base": "RefCounted",
-"class": &"TemplateParser",
-"language": &"GDScript",
-"path": "res://lib/template_engine/template_parser.gd"
-}, {
-"base": "RefCounted",
 "class": &"ThreadPool",
 "language": &"GDScript",
 "path": "res://lib/concurrency/thread_pool.gd"
@@ -121,13 +101,11 @@ _global_script_classes=[{
 }]
 _global_script_class_icons={
 "App": "",
-"AstNode": "",
 "ConcurrentQueue": "",
 "Cookie": "",
 "HttpRequest": "",
 "HttpResponse": "",
 "HttpServer": "",
-"IfNode": "",
 "Main": "",
 "Queue": "",
 "Session": "",
@@ -136,8 +114,6 @@ _global_script_class_icons={
 "Task": "",
 "TcpClient": "",
 "TcpListener": "",
-"TemplateEngine": "",
-"TemplateParser": "",
 "ThreadPool": "",
 "TimeUtils": "",
 "URI": "",
