@@ -27,10 +27,7 @@ func start() -> void:
     app = App.new()
 
     # session
-    var session := SessionMiddleware.new()
-    app.connect("started", session.load_store)
-    app.connect("stopped", session.save_store)
-    app.use(session)
+    app.use(Session.new())
 
     # logger
     app.use(func(ctx: Dictionary):
