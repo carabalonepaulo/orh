@@ -6,10 +6,12 @@ const SESSIONS_PATH := "res://lib/middlewares/session/sessions.bin"
 const DEFAULT_LIFE_SPAN := 15 * 60 * 60 * 24 # 15 days
 
 var _sessions: Dictionary
+var _mutex: Mutex
 
 
 func _init():
     _sessions = {}
+    _mutex = Mutex.new()
 
 
 func get_all() -> Array[Dictionary]:
@@ -31,7 +33,10 @@ func regenerate(id: String) -> Dictionary:
     var new_id := UUID.v4()
     session.__id = new_id
     session.__expires_at = Time.get_unix_time_from_system() + DEFAULT_LIFE_SPAN
+
+    _mutex.lock()
     _sessions[new_id] = session
+    _mutex.unlock()
 
     return session
 
@@ -42,12 +47,16 @@ func create() -> Dictionary:
         "__id": id,
         "__expires_at": Time.get_unix_time_from_system() + DEFAULT_LIFE_SPAN
     }
+    _mutex.lock()
     _sessions[id] = session
+    _mutex.unlock()
     return session
 
 
 func destroy(id: String) -> void:
+    _mutex.lock()
     _sessions.erase(id)
+    _mutex.unlock()
 
 
 func is_valid(id: String) -> bool:
@@ -56,7 +65,9 @@ func is_valid(id: String) -> bool:
 
 
 func clear() -> void:
+    _mutex.lock()
     _sessions.clear()
+    _mutex.unlock()
 
 
 func save_sessions() -> void:

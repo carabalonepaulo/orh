@@ -9,34 +9,83 @@ const MAX_BODY := 8_388_608
 const CRLF := "\r\n"
 const HEADER_LIMIT := 10_000
 
-var _listener: TcpListener
+var _workers: Array[Thread]
+var _semaphore: Semaphore
+var _queue: ConcurrentQueue
+
+var _clients: ConcurrentList
+var _listener: TCPServer
 var _running: bool
+var _port: int
 
 
-func _init(port := 8080):
-    _listener = TcpListener.new(port)
-    _listener.connect("client_connected", _on_client_connected)
+func _init(port := 8080, max_workers := 64):
+    _workers = []
+    for i in max_workers:
+        _workers.push_back(Thread.new())
+    _semaphore = Semaphore.new()
+    _queue = ConcurrentQueue.new()
+
+    _clients = ConcurrentList.new()
+    _listener = TCPServer.new()
+    _port = port
 
 
 func start() -> void:
     _running = true
-    _listener.start()
+    for thread in _workers:
+        thread.start(_worker_loop)
+    _listener.listen(_port)
 
 
 func stop() -> void:
     _running = false
+    _clients.for_each(func(client: TcpClient): client.disconnect_from_host())
+    _clients.clear()
+    _stop_workers()
     _listener.stop()
 
 
 func poll() -> void:
-    _listener.poll()
+    if _listener.is_connection_available():
+        _on_client_connected(TcpClient.new(_listener.take_connection()))
+    _clients.for_each(_poll_client)
+
+
+func _poll_client(client: TcpClient) -> void:
+    if not client.is_connected:
+        _dispose_client(client)
+        return
+
+    if client.has_pending_data:
+        _queue.enqueue(client)
+        _semaphore.post()
+
+
+func _stop_workers() -> void:
+    for worker in _workers:
+        _semaphore.post()
+    for worker in _workers:
+        worker.wait_to_finish()
+
+
+func _worker_loop() -> void:
+    while _running:
+        _semaphore.wait()
+        while (not _queue.is_empty and _running):
+            var client: TcpClient = _queue.try_dequeue()
+            if client != null:
+                if not _handle_request(client):
+                    _dispose_client(client)
 
 
 func _on_client_connected(client: TcpClient) -> void:
-    while _running:
-        if not await _handle_request(client):
-            break
-    client.dispose()
+    _clients.add(client)
+
+
+func _dispose_client(client: TcpClient) -> void:
+    _clients.remove(client)
+    client.disconnect_from_host()
 
 
 func _handle_request(client: TcpClient) -> bool:
@@ -47,9 +96,8 @@ func _handle_request(client: TcpClient) -> bool:
 
     # https://tools.ietf.org/html/rfc7230#section-3.5
     for i in 2:
-        line = await client.read_line().completed
+        line = client.read_line()
         if line == "":
-            client.dispose()
             return false
         elif line != CRLF:
             break
@@ -71,7 +119,7 @@ func _handle_request(client: TcpClient) -> bool:
     # Headers
     var count := 0
     while true:
-        line = await client.read_line().completed
+        line = client.read_line()
         if line == CRLF:
             break
         elif line.length() > MAX_LINE:
@@ -114,7 +162,12 @@ func _handle_request(client: TcpClient) -> bool:
             response.send(413)
             return false
 
-        request.body = (await client.read(content_length).completed).get_string_from_ascii()
+        var data := client.read(content_length)
+        if data[0] != OK:
+            response.send(400)
+            return false
+
+        request.body = data[1].get_string_from_ascii()
         if request.body.length() != content_length:
             response.send(400)
             return true
@@ -126,7 +179,7 @@ func _handle_request(client: TcpClient) -> bool:
 
         while true:
             if size_or_data % 2 == 0:
-                line = _trim((await client.read_line().completed))
+                line = _trim(client.read_line())
                 if not _is_valid_hex(line):
                     response.send(400)
                     return false
@@ -136,10 +189,19 @@ func _handle_request(client: TcpClient) -> bool:
                 if bytes_to_read == 0:
                     break
 
-                var chunk: PackedByteArray = await client.read(bytes_to_read).completed
-                body.append(chunk.get_string_from_ascii())
+                var data := client.read(bytes_to_read)
+                if data[0] != OK:
+                    response.send(400)
+                    return false
 
-                var separator: String = (await client.read(2).completed).get_string_from_ascii()
+                body.append(data[1].get_string_from_ascii())
+
+                data = client.read(2)
+                if data[0] != OK:
+                    response.send(400)
+                    return false
+
+                var separator: String = data[1].get_string_from_ascii()
                 if separator != CRLF:
                     response.send(400)
                     return true
