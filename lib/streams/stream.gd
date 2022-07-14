@@ -165,6 +165,6 @@ func pipe_to(stream: Stream, max_chunk_size := 512, total := -1) -> void:
         available = get_available_bytes()
 
 
-func pipe_through(stream: Stream, max_chunk_size := 512, total := -1) -> void:
+func pipe_through(stream: Stream, max_chunk_size := 512, total := -1) -> Stream:
     pipe_to(stream, max_chunk_size, total)
     return stream
