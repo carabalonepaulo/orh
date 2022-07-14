@@ -96,3 +96,7 @@ func read_double() -> float:
 func read_bytes(length: int) -> PackedByteArray:
     var data := _stream.get_data(length)
     return data[1]
+
+
+func get_available_bytes() -> int:
+    return _stream.get_available_bytes()

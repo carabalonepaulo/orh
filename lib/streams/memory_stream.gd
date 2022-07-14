@@ -146,3 +146,7 @@ func read_bytes(length: int) -> PackedByteArray:
 
 func dispose() -> void:
     _buffer.clear()
+
+
+func get_available_bytes() -> int:
+    return _write_cursor - _read_cursor

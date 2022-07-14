@@ -146,6 +146,10 @@ func read_bytes(length: int) -> PackedByteArray:
     return _file.get_buffer(length)
 
 
+func get_available_bytes() -> int:
+    return _file.get_length() - _read_cursor
+
+
 func dispose() -> void:
     _file.close()
 

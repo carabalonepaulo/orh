@@ -132,3 +132,7 @@ func read_raw_utf8(length: int) -> String:
 
 func read_bool() -> bool:
     return read_8() == OK
+
+
+func get_available_bytes() -> int:
+    return 0
