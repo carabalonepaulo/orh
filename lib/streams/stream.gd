@@ -2,6 +2,12 @@ class_name Stream
 extends Disposable
 
 
+var length: int:
+    get: return get_length()
+var available_bytes: int:
+    get: return get_available_bytes()
+
+
 func write_8(value: int) -> void:
     pass
 
@@ -110,7 +116,7 @@ func read_double() -> float:
     return -1.0
 
 
-func read_bytes(length: int) -> PackedByteArray:
+func read_bytes(_length: int) -> PackedByteArray:
     return PackedByteArray()
 
 
@@ -118,16 +124,16 @@ func read_ascii() -> String:
     return read_raw_ascii(read_u16())
 
 
-func read_raw_ascii(length: int) -> String:
-    return read_bytes(length).get_string_from_ascii()
+func read_raw_ascii(_length: int) -> String:
+    return read_bytes(_length).get_string_from_ascii()
 
 
 func read_utf8() -> String:
     return read_raw_utf8(read_u16())
 
 
-func read_raw_utf8(length: int) -> String:
-    return read_bytes(length).get_string_from_utf8()
+func read_raw_utf8(_length: int) -> String:
+    return read_bytes(_length).get_string_from_utf8()
 
 
 func read_bool() -> bool:
@@ -135,6 +141,10 @@ func read_bool() -> bool:
 
 
 func get_available_bytes() -> int:
+    return 0
+
+
+func get_length() -> int:
     return 0
 
 

@@ -6,5 +6,5 @@ var method: StringName
 var headers: Dictionary
 var protocol: String
 var uri: URI
-var body: String
+var body: Stream
 var cookies: Dictionary

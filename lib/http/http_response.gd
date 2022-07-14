@@ -78,12 +78,13 @@ const STATUS := {
 }
 
 var headers: Dictionary
+var body: Stream
 
-var _client: TcpClient
+var _client: NetworkStream
 var _cookies: Array[Cookie]
 
 
-func _init(client: TcpClient):
+func _init(client: NetworkStream):
     _client = client
     _cookies = []
 
@@ -103,26 +104,27 @@ func remove_cookie(name: String) -> void:
         _cookies.remove_at(index)
 
 
-func send(code: int, content := "") -> void:
+func send(code := 200) -> void:
     emit_signal("before_send")
 
-    var raw_content := content.to_ascii_buffer()
     var lines := PackedStringArray()
     lines.append("HTTP/1.1 %d %s" % [code, STATUS[code]])
 
     for key in headers:
         lines.append("%s: %s" % [key, headers[key]])
 
-    if not headers.has("Content-Length"):
-        lines.append("Content-Length: %d" % raw_content.size())
+    if not headers.has("Content-Length") and body != null:
+        lines.append("Content-Length: %d" % body.length)
 
     for cookie in _cookies:
         lines.append("Set-Cookie: %s" % cookie)
 
     lines.append(CRLF)
 
-    _client.send_string(CRLF.join(lines))
-    _client.send(raw_content)
+    _client.write_raw_ascii(CRLF.join(lines))
+
+    if body != null:
+        body.pipe_to(_client)
 
     emit_signal("after_send")
 

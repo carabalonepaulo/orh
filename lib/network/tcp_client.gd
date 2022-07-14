@@ -9,12 +9,14 @@ var is_connected: bool:
     get: return _socket.poll() == OK and _socket.get_status() == StreamPeerTCP.STATUS_CONNECTED
 var has_pending_data: bool:
     get: return _socket.get_available_bytes() > 0
+var socket: StreamPeerTCP:
+    get: return _socket
 
 var _socket: StreamPeerTCP
 
 
-func _init(socket: StreamPeerTCP):
-    _socket = socket
+func _init(stream: StreamPeerTCP):
+    _socket = stream
 
 
 func send(buff: PackedByteArray) -> void:

@@ -137,10 +137,10 @@ func read_double() -> float:
     return _buffer.get_double()
 
 
-func read_bytes(length: int) -> PackedByteArray:
+func read_bytes(_length: int) -> PackedByteArray:
     _buffer.seek(_read_cursor)
-    _read_cursor += length
-    var data := _buffer.get_data(length)
+    _read_cursor += _length
+    var data := _buffer.get_data(_length)
     return data[1]
 
 
@@ -150,3 +150,7 @@ func dispose() -> void:
 
 func get_available_bytes() -> int:
     return _write_cursor - _read_cursor
+
+
+func get_length() -> int:
+    return _write_cursor

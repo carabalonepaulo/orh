@@ -17,14 +17,22 @@ func start() -> void:
             now["minute"], now["second"], ctx.req.method, ctx.req.uri.path]
         print(formatted))
 
+#    # send file
+#    app.use(func(ctx):
+#        ctx.res.body = FileStream.new("res://src/public/test.html")
+#        ctx.res.send())
+
     # handle request
-    app.use(func(ctx: Dictionary):
+    app.use(func(ctx):
         ctx.init_session.call()
+        ctx.res.body = MemoryStream.new()
 
         if ctx.session.has("last_path"):
-            ctx.res.send(200, "Path: %s" % ctx.session.last_path)
+            ctx.res.body.write_raw_ascii("Path: %s" % ctx.session.last_path)
         else:
-            ctx.res.send(200, "Hello World!")
+            ctx.res.body.write_raw_ascii("Hello World!")
+
+        ctx.res.send()
         ctx.session.last_path = ctx.req.uri.path)
 
     # detroy current session

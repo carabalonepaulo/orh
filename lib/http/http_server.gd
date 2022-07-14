@@ -90,7 +90,7 @@ func _dispose_client(client: TcpClient) -> void:
 
 func _handle_request(client: TcpClient) -> bool:
     var request := HttpRequest.new()
-    var response := HttpResponse.new(client)
+    var response := HttpResponse.new(NetworkStream.new(client.socket))
     var line: String
     var parts: Array
 
@@ -102,14 +102,14 @@ func _handle_request(client: TcpClient) -> bool:
         elif line != CRLF:
             break
         elif line.length() > MAX_LINE:
-            response.send(413)
+            response.send_status(413)
             return false
 
     # GET /path HTTP/1.1
     parts = _trim(line).split(" ")
 
     if parts.size() != 3:
-        response.send(400)
+        response.send_status(400)
         return true
 
     request.method = parts[0]
@@ -123,7 +123,7 @@ func _handle_request(client: TcpClient) -> bool:
         if line == CRLF:
             break
         elif line.length() > MAX_LINE:
-            response.send(413)
+            response.send_status(413)
             return false
         elif line == "":
             return false
@@ -133,7 +133,7 @@ func _handle_request(client: TcpClient) -> bool:
         count += 1
 
         if count > HEADER_LIMIT:
-            response.send(400)
+            response.send_status(400)
             return false
 
     # Cookies
@@ -154,34 +154,37 @@ func _handle_request(client: TcpClient) -> bool:
     # Body
     if request.headers.has("Content-Length"):
         if not _is_valid_content_length(request.headers["Content-Length"]):
-            response.send(400)
+            response.send_status(400)
             return false
 
         var content_length: int = request.headers["Content-Length"].to_int()
         if content_length > MAX_BODY:
-            response.send(413)
+            response.send_status(413)
             return false
+
+        request.body = (FileStream if content_length > 4096 else MemoryStream).new()
 
         var data := client.read(content_length)
         if data[0] != OK:
-            response.send(400)
+            response.send_status(400)
             return false
 
-        request.body = data[1].get_string_from_ascii()
-        if request.body.length() != content_length:
-            response.send(400)
+        # TODO: read by chunks
+        request.body.write_bytes(data[1])
+        if request.body.length != content_length:
+            response.send_status(400)
             return true
 
     elif _has_chunked_encoding(request):
         var size_or_data := 0
         var bytes_to_read := 0
-        var body := PackedStringArray()
+        request.body = FileStream.new()
 
         while true:
             if size_or_data % 2 == 0:
                 line = _trim(client.read_line())
                 if not _is_valid_hex(line):
-                    response.send(400)
+                    response.send_status(400)
                     return false
 
                 bytes_to_read = line.hex_to_int()
@@ -191,25 +194,24 @@ func _handle_request(client: TcpClient) -> bool:
 
                 var data := client.read(bytes_to_read)
                 if data[0] != OK:
-                    response.send(400)
+                    response.send_status(400)
                     return false
 
-                body.append(data[1].get_string_from_ascii())
+                request.body.write_bytes(data[1])
 
                 data = client.read(2)
                 if data[0] != OK:
-                    response.send(400)
+                    response.send_status(400)
                     return false
 
                 var separator: String = data[1].get_string_from_ascii()
                 if separator != CRLF:
-                    response.send(400)
+                    response.send_status(400)
                     return true
 
             size_or_data += 1
-        request.body = "".join(body)
     elif request.method == "POST":
-        response.send(411)
+        response.send_status(411)
         return true
 
     emit_signal("request_received", request, response)

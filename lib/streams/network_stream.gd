@@ -93,13 +93,17 @@ func read_double() -> float:
     return _stream.get_double()
 
 
-func read_bytes(length: int) -> PackedByteArray:
-    var data := _stream.get_data(length)
+func read_bytes(_length: int) -> PackedByteArray:
+    var data := _stream.get_data(_length)
     return data[1]
 
 
 func get_available_bytes() -> int:
     return _stream.get_available_bytes()
+
+
+func get_length() -> int:
+    return -1
 
 
 func pipe_to(stream: Stream, max_chunk_size := 512, total := -1) -> void:
