@@ -2,19 +2,25 @@ class_name FileStream
 extends Stream
 
 
+var file_path: String:
+    get: return _file_path
+
 var _read_cursor: int
 var _write_cursor: int
 var _file: File
+var _file_path: String
 
 
 func _init(path := ""):
     _file = File.new()
 
     if path == "":
-        if _file.open(_get_temp_file_path(), File.WRITE_READ) != OK:
+        _file_path = _get_temp_file_path()
+        if _file.open(_file_path, File.WRITE_READ) != OK:
             push_error("Failed to open temp file.")
     else:
-        if _file.open(path, File.READ_WRITE) != OK:
+        _file_path = path
+        if _file.open(_file_path, File.READ_WRITE) != OK:
             push_error("Failed to open file.")
         _write_cursor = _file.get_length()
 
@@ -83,6 +89,7 @@ func write_double(value: float) -> void:
 
 func write_bytes(value: PackedByteArray) -> void:
     _file.store_buffer(value)
+    _file.flush()
 
 
 func read_8() -> int:
@@ -152,6 +159,10 @@ func get_available_bytes() -> int:
 
 func dispose() -> void:
     _file.close()
+
+
+func flush() -> void:
+    _file.flush()
 
 
 func _get_temp_dir() -> String:

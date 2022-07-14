@@ -2,10 +2,10 @@ class_name NetworkStream
 extends Stream
 
 
-var _stream: StreamPeer
+var _stream: StreamPeerTCP
 
 
-func _init(stream: StreamPeer):
+func _init(stream: StreamPeerTCP):
     _stream = stream
 
 
@@ -100,3 +100,29 @@ func read_bytes(length: int) -> PackedByteArray:
 
 func get_available_bytes() -> int:
     return _stream.get_available_bytes()
+
+
+func pipe_to(stream: Stream, max_chunk_size := 512, total := -1) -> void:
+    var connected := _is_connected()
+    var chunk_size: int
+    var total_written := 0
+
+    while connected:
+        if total != -1 and total_written + max_chunk_size >= total:
+            chunk_size = total - total_written
+        else:
+            chunk_size = max_chunk_size
+
+        var data := _stream.get_data(chunk_size)
+        if data[1] != null and data[1].size() > 0:
+            stream.write_bytes(data[1])
+            total_written += data[1].size()
+
+        if data[0] != OK or total_written == total:
+            break
+
+        connected = _is_connected()
+
+
+func _is_connected() -> bool:
+    return _stream.poll() == OK and _stream.get_status() == StreamPeerTCP.STATUS_CONNECTED

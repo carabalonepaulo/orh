@@ -136,3 +136,20 @@ func read_bool() -> bool:
 
 func get_available_bytes() -> int:
     return 0
+
+
+func pipe_to(stream: Stream, max_chunk_size := 512, total := -1) -> void:
+    var available := get_available_bytes()
+    var chunk_size: int
+    var total_written := 0
+
+    while available > 0:
+        if total != -1 and total_written + max_chunk_size >= total:
+            stream.write_bytes(read_bytes(total - total_written))
+            break
+
+        chunk_size = max_chunk_size if available >= max_chunk_size else available
+        stream.write_bytes(read_bytes(chunk_size))
+        total_written += chunk_size
+
+        available = get_available_bytes()
